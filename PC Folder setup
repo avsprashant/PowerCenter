@@ -1,0 +1,55 @@
+#!/bin/sh
+# Contact Prashant Infosys for any modifications
+
+U=`whoami`
+if [ $U = "root" ]
+then
+dzdo su - webapp
+sleep 5
+fi 
+
+if [ $U != "webapp" ]
+then
+echo " Run it with WEBAPP only "
+exit
+fi
+
+if [ $# -lt 2 ]
+then 
+echo " Usage : Provide required args APP followed by ATMID  "
+exit 
+fi
+
+APP=$1
+ATMID=$2
+
+cd /users/pcat/scripts
+cp mig_pc.config mig_pc.config.`date +%F` #(mmddyy)
+
+entry=$APP:${APP}_pm_migrate:${APP^^}-RX:${APP^^}:$ATMID;
+
+sleep 1;
+echo $entry >> mig_pc.config ;
+sleep 5;
+
+cd /users/pcat/rollout
+mkdir $APP
+cd MIG_CFG
+./pc_distribute_obj_scripts
+
+if [ ! -d "/users/pcat/rollout/$APP" ]; then
+  echo " Error : /users/pcat/rollout/$APP  didn't get created. Escalate to MBH"
+fi
+if [ ! -d "/users/pcat/qa/$APP" ]; then
+  echo " Error : /users/pcat/qa/$APP  didn't get created. Escalate to MBH"
+fi
+if [ ! -d "/users/pcat/prod/$APP" ]; then
+  echo " Error : /users/pcat/prod/$APP  didn't get created. Escalate to MBH"
+fi
+
+user=`who am i|cut -d" " -f1`
+OPERATOR=`echo  $user | sed 's/.\{2\}$//' `
+
+echo  "The required Folder setup is done for $APP with $ATMID" | mail -s "Folder setup is complete" -c inypvsa@capgroup.com $OPERATOR@capgroup.com
+
+# We may find  dead.letter file we can ignore it.
