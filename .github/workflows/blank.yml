@@ -14,4 +14,6 @@ jobs:
           version: '3.11'
           ports: '1883:1883 8883:8883'
           container-name: 'mqtt'
-  
+
+      - name: Images check
+        run: docker ps -a
